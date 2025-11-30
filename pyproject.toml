@@ -1,0 +1,40 @@
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[project]
+name = "aoc_2025"
+version = "1.0.0"
+authors = [{ name = "Nicholas Hansen", email = "ndhansen@leskat.net" }]
+description = "Advent of Code 2025"
+requires-python = ">=3.13"
+dependencies = ["parse", "watchfiles", "rich", "regex", "aoc"]
+
+[project.optional-dependencies]
+dev = [
+  "pudb",
+  "bpython",
+  "mypy",
+  "ruff",
+  "ipython",
+  "pygraphviz @ git+https://github.com/openSUSE-Python/pygraphviz@4ba5226458e0c5f28ca6f5e1de08283978651141",
+  "networkx",
+  "tqdm",
+  "sympy",
+]
+
+[project.entry-points.aoc]
+base = "aoc_2025"
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["parse"]
+ignore_missing_imports = true
+
+[tool.pyright]
+extraPaths = ["../advent_of_code_utils/"]
+
+[tool.uv.sources]
+aoc = { path = "../advent_of_code_utils", editable = true }
