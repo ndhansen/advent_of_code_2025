@@ -35,12 +35,7 @@ def part_2(puzzle: PuzzleInput) -> Any:
             else:
                 i += 1
 
-        eliminate = 1
-        while len(bank) > 12:
-            if eliminate in bank:
-                bank.pop(bank.index(eliminate))
-            else:
-                eliminate += 1
+        bank = bank[:12]
 
         new_num = int("".join(str(s) for s in bank))
         total += new_num
