@@ -1,9 +1,10 @@
 import itertools
 from collections.abc import Iterator, Sequence
-from typing import Any, Mapping
+from typing import Any
 
-from aoc import a_star
+import numpy as np
 from aoc.puzzle import PuzzleInput
+from scipy import linalg
 from tqdm import tqdm
 
 
@@ -62,94 +63,18 @@ def part_1(puzzle: PuzzleInput) -> Any:
 
 
 def min_button_presses(buttons: list[tuple[int, ...]], joltage: tuple[int, ...]) -> int:
-    # curr_jolts -> min_steps
-    jolt_by_step: dict[tuple[int, ...], int] = {}
-    seen_jolts = set()
-    frontier = [[0 for _ in joltage]]
-    next_frontier = []
-    steps = 1
-    while True:
-        for item in frontier:
-            for button in buttons:
-                curr_list = item.copy()
-                skip = False
-                for index in button:
-                    curr_list[index] += 1
-                    if curr_list[index] > joltage[index]:
-                        skip = True
-                if skip:
-                    continue
-                curr = tuple(curr_list)
-                if curr == joltage:
-                    return steps
-                if curr in seen_jolts:
-                    continue
-                next_frontier.append(curr_list)
-                seen_jolts.add(curr)
-
-        steps += 1
-        print(steps)
-        frontier = next_frontier
-        next_frontier = []
-
-
-def greedy(buttons: list[tuple[int, ...]], joltage: tuple[int, ...]) -> int | None:
-    buttons = sorted(buttons, key=len, reverse=True)
+    button_arrays = []
     for button in buttons:
-        divisor = min(joltage[b] for b in button)
-
-        new_joltage = list(joltage)
+        button_array = [0 for _ in joltage]
         for index in button:
-            new_joltage[index] -= divisor
+            button_array[index] = 1
+        button_arrays.append(button_array)
 
-        if sum(new_joltage) == 0:
-            return divisor
-
-        new_buttons = buttons.copy()
-        new_buttons.remove(button)
-        remaining = greedy(new_buttons, tuple(new_joltage))
-        if remaining:
-            return divisor + remaining
-    return None
-
-
-class ButtonPressHeuristic(a_star.Heuristic[tuple[int, ...]]):
-    def __call__(self, current: tuple[int, ...], goal: tuple[int, ...]) -> float:
-        total = 0
-        for cj, gj in zip(current, goal, strict=True):
-            if cj > gj:
-                return float("inf")
-            total += gj - cj
-        return float(total)
-
-
-class ButtonPressCost(a_star.Cost[tuple[int, ...]]):
-    def __call__(
-        self,
-        paths: Mapping[tuple[int, ...], tuple[int, ...]],
-        current: tuple[int, ...],
-        last: tuple[int, ...],
-    ) -> float:
-        return 1.0
-
-
-class ButtonPressNeighbors(a_star.Neighbors[tuple[int, ...]]):
-    def __init__(self, buttons: list[tuple[int, ...]], goal: tuple[int, ...]) -> None:
-        self.buttons = buttons
-        self.goal = goal
-
-    def __call__(
-        self, current: tuple[int, ...], paths: Mapping[tuple[int, ...], tuple[int, ...]]
-    ) -> Iterator[tuple[int, ...]]:
-        for button in self.buttons:
-            c = list(current)
-            skip = False
-            for index in button:
-                c[index] += 1
-                if c[index] > self.goal[index]:
-                    skip = True
-            if not skip:
-                yield tuple(c)
+    button_arrays_rot = list(zip(*button_arrays))
+    a = np.array(button_arrays_rot)
+    b = np.array(joltage)
+    x = linalg.solve(a, b)
+    return int(sum(x))
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
@@ -157,24 +82,7 @@ def part_2(puzzle: PuzzleInput) -> Any:
     total = 0
     for _, buttons, joltage in tqdm(machines):
         # Not fast or correct
-        steps = greedy(buttons, joltage)
-        print(steps)
-        if not steps:
-            raise RuntimeError("No path found!")
-        total += steps
-        # Dynamic Programming attempt 1, Too slow
-        # total += min_button_presses(buttons, joltage)
-
-        # A-star is even slower
-        # start = tuple(0 for _ in joltage)
-        # _, steps = a_star.a_star(
-        #     start=start,
-        #     goal=joltage,
-        #     heuristic=ButtonPressHeuristic(),
-        #     cost_func=ButtonPressCost(),
-        #     next_func=ButtonPressNeighbors(buttons=buttons, goal=joltage),
-        # )
-        # total += steps
+        total += min_button_presses(buttons, joltage)
         ...
     return total
 
