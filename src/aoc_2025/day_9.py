@@ -120,23 +120,8 @@ def part_2(puzzle: PuzzleInput) -> Any:
     corners = parse_puzzle(puzzle=puzzle)
     areas: list[tuple[int, tuple[Coord, Coord]]] = []
 
-    print(len(corners))
-    print(Coord(row=50282, col=95634) == Coord(row=50282, col=95634))
-    print(Coord(row=50282, col=95634) in corners)
-    print(Coord(row=95634, col=50282) in corners)
     # Build all areas (includes incorrect "outer" areas)
     for c1, c2 in itertools.combinations(corners, 2):
-        if Coord(row=50282, col=95634) in (c1, c2):
-            import pudb
-
-            pudb.set_trace()
-        if Coord(row=95634, col=50282) in (c1, c2) and Coord(row=5207, col=66267) in (
-            c1,
-            c2,
-        ):
-            import pudb
-
-            pudb.set_trace()
         area = (abs(c1.row - c2.row) + 1) * (abs(c1.col - c2.col) + 1)
         heapq.heappush(areas, (-area, (c1, c2)))
 
@@ -148,7 +133,8 @@ def part_2(puzzle: PuzzleInput) -> Any:
         if is_left_turn(c1, c2, c3):
             left_turn_rects.append(Rectangle.from_points(c1, c3))
 
-    for area, area_corners in areas:
+    while areas:
+        area, area_corners = heapq.heappop(areas)
         c1, c2 = area_corners
 
         low_row = min(c1.row, c2.row)
@@ -170,20 +156,4 @@ def part_2(puzzle: PuzzleInput) -> Any:
                 failed = True
 
         if not failed:
-            import pudb
-
-            pudb.set_trace()
             return -area
-
-
-# Not:
-# 113979918
-# 167704056
-# 4667093750
-# 1035829542
-# 58874757
-# Is:
-#
-# Rect:
-# 94634,50282
-# 5207,66267
