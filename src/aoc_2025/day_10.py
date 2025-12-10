@@ -2,9 +2,8 @@ import itertools
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-import numpy as np
 from aoc.puzzle import PuzzleInput
-from scipy import linalg
+from scipy.optimize import linprog
 from tqdm import tqdm
 
 
@@ -71,34 +70,15 @@ def min_button_presses(buttons: list[tuple[int, ...]], joltage: tuple[int, ...])
         button_arrays.append(button_array)
 
     button_arrays_rot = list(zip(*button_arrays))
-    a = np.array(button_arrays_rot)
-    b = np.array(joltage)
-    x = linalg.solve(a, b)
-    return int(sum(x))
+    x = linprog(
+        [1] * len(button_arrays), A_eq=button_arrays_rot, b_eq=joltage, integrality=1
+    )
+    return int(round(x.fun))
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
     machines = parse_puzzle(puzzle=puzzle)
     total = 0
     for _, buttons, joltage in tqdm(machines):
-        # Not fast or correct
         total += min_button_presses(buttons, joltage)
-        ...
     return total
-
-
-"""
-(1,3) (0,1,2) (1,2,3) (0,2) {7,15,19,15}
-15x (1,3) | (0,1,2) (1,2,3) (0,2) {7,0,19,0}
-15x (1,3) 7x(0,2) | (0,1,2) (1,2,3) {0,0,12,0}
-
-(0,1,2) (1,2,3) (0,2) (1,3) {7,15,19,15}
-7x (0,1,2) | (1,2,3) (0,2) (1,3) {0,8,12,15}
-8x (1,2,3) | (0,2) (1,3) {0,0,4,7}
-8x (1,3) | (0,2) {0,0,12,7}
-
-(1,3) (0,1,2) (1,2,3) (0,2) {7,15,19,15}
-7x(0,2) | (1,3) (0,1,2) (1,2,3) {0,15,12,15}
-12x(0,1,2) | (1,3) (1,2,3) {0,3,0,3}
-3x(1,3) | (1,2,3) {0,3,0,3}
-"""
