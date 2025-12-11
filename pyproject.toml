@@ -8,7 +8,16 @@ version = "1.0.0"
 authors = [{ name = "Nicholas Hansen", email = "ndhansen@leskat.net" }]
 description = "Advent of Code 2025"
 requires-python = ">=3.13"
-dependencies = ["parse", "watchfiles", "rich", "regex", "aoc", "scipy", "numpy"]
+dependencies = [
+  "parse",
+  "watchfiles",
+  "rich",
+  "regex",
+  "aoc",
+  "scipy",
+  "numpy",
+  "frozendict",
+]
 
 [project.optional-dependencies]
 dev = [
